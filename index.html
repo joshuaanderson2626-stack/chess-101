@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Console</title>
+<style>
+body{
+  margin:0;
+  background:black;
+  color:#00ff00;
+  font-family:monospace;
+  overflow:hidden;
+}
+
+#login,#boot,#terminal,#cams{
+  position:absolute;
+  inset:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex-direction:column;
+}
+
+input,button{
+  background:black;
+  border:1px solid #00ff00;
+  color:#00ff00;
+  padding:12px;
+  font-size:16px;
+}
+
+.hidden{display:none}
+
+#screen{
+  width:90vw;
+  height:50vh;
+  border:1px solid #00ff00;
+  padding:10px;
+  overflow-y:auto;
+  font-size:12px;
+}
+
+#hud{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+  font-size:11px;
+  margin-bottom:5px;
+}
+
+.alert{
+  color:red;
+  animation:blink 1s infinite;
+}
+@keyframes blink{50%{opacity:0}}
+
+.bar{
+  width:50px;
+  height:6px;
+  border:1px solid #0f0;
+}
+.fill{
+  height:100%;
+  background:#0f0;
+  animation:signal 2s infinite;
+}
+@keyframes signal{
+  0%{width:20%}
+  50%{width:90%}
+  100%{width:30%}
+}
+
+#cams{
+  gap:10px;
+}
+
+.cam{
+  position:relative;
+  width:95vw;
+  height:35vh;
+  border:1px solid #00ff00;
+}
+
+iframe{
+  width:100%;
+  height:100%;
+}
+
+.cover{
+  position:absolute;
+  inset:0;
+  background:black;
+  color:#00ff00;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex-direction:column;
+  z-index:5;
+}
+
+.static{
+  width:100%;
+  height:100%;
+  background:repeating-linear-gradient(
+    0deg,
+    #000 0px,
+    #000 2px,
+    #0f0 3px
+  );
+  animation:noise .1s infinite;
+}
+
+@keyframes noise{
+  from{filter:brightness(.4)}
+  to{filter:brightness(1)}
+}
+
+.scanbox{
+  position:absolute;
+  border:1px solid red;
+  width:60px;
+  height:60px;
+  animation:scan 3s infinite alternate;
+  top:20%;
+  left:30%;
+}
+@keyframes scan{
+  from{transform:translate(0,0)}
+  to{transform:translate(80px,50px)}
+}
+
+small{
+  position:fixed;
+  bottom:3px;
+  right:8px;
+  opacity:.25;
+  font-size:9px;
+}
+</style>
+</head>
+<body>
+
+<audio id="typeSound" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_4bd5c91c61.mp3?filename=keyboard-typing-5998.mp3"></audio>
+<audio id="bootSound" src="https://cdn.pixabay.com/download/audio/2022/02/23/audio_8c2df49c50.mp3?filename=computer-startup-112375.mp3"></audio>
+
+<div id="login">
+  <h3>LOGIN</h3>
+  <input id="pass" placeholder="PASSWORD">
+  <button onclick="check()">ENTER</button>
+</div>
+
+<div id="boot" class="hidden">
+  <pre id="bootText"></pre>
+</div>
+
+<div id="terminal" class="hidden">
+  <div id="hud">
+    <div class="alert">TRACE ACTIVE</div>
+    <div>IP: 172.24.91.33</div>
+    <div>PORT: 443</div>
+    <div class="bar"><div class="fill"></div></div>
+    <div>T-<span id="timer">10</span></div>
+  </div>
+  <div id="screen"></div>
+  <input id="cmd" placeholder=">">
+</div>
+
+<div id="cams" class="hidden">
+  <div class="cam">
+    <iframe src="https://www.youtube.com/embed/-kuCXBel4PM?start=40&autoplay=1&mute=1&controls=0&loop=1&playlist=-kuCXBel4PM"></iframe>
+    <div class="scanbox"></div>
+    <div class="cover">
+      <div>LOADING FEED…</div>
+      <div class="static"></div>
+    </div>
+  </div>
+
+  <div class="cam">
+    <iframe src="https://www.youtube.com/embed/aqz-KE-bpKQ?start=120&autoplay=1&mute=1&controls=0&loop=1&playlist=aqz-KE-bpKQ"></iframe>
+    <div class="scanbox"></div>
+    <div class="cover">
+      <div>LOADING FEED…</div>
+      <div class="static"></div>
+    </div>
+  </div>
+</div>
+
+<small>stage simulation</small>
+
+<script>
+function check(){
+  if(pass.value==="Lauren"){
+    login.classList.add("hidden");
+    boot.classList.remove("hidden");
+    bootSound.play();
+    bootSeq();
+  }
+}
+
+function bootSeq(){
+  let lines=[
+    "Booting system...",
+    "Decrypting nodes...",
+    "Routing through proxy...",
+    "Console ready."
+  ];
+  let i=0;
+  let t=setInterval(()=>{
+    bootText.textContent+=lines[i++]+"\n";
+    if(i>=lines.length){
+      clearInterval(t);
+      setTimeout(()=>{
+        boot.classList.add("hidden");
+        terminal.classList.remove("hidden");
+        startTimer();
+      },1000);
+    }
+  },800);
+}
+
+cmd.addEventListener("keydown",e=>{
+  if(e.key==="Enter"){
+    typeSound.play();
+    screen.innerHTML+="<div>> "+cmd.value+"</div>";
+    screen.innerHTML+="<div>PROCESSING…</div>";
+    cmd.value="";
+    screen.scrollTop=screen.scrollHeight;
+    setTimeout(()=>{
+      terminal.classList.add("hidden");
+      cams.classList.remove("hidden");
+      startCams();
+    },2000);
+  }
+});
+
+let time=10;
+function startTimer(){
+  let t=setInterval(()=>{
+    timer.textContent=time;
+    time--;
+    if(time<0) clearInterval(t);
+  },1000);
+}
+
+function startCams(){
+  document.querySelectorAll(".cover").forEach((c,i)=>{
+    setTimeout(()=>{
+      c.style.opacity=0;
+      setTimeout(()=>c.remove(),1000);
+    },10000 + i*1500);
+  });
+}
+</script>
+</body>
+</html>
